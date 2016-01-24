@@ -1,7 +1,7 @@
 "use strict"
 
 // Regex for matching script-containing URLs or POSTdata
-const XSS_REGEX = /(<(\s|\+)*\/?(\s|\+)*script(\s|\+)*>|javascript\:)/i
+const XSS_REGEX = /(<(\s|\+)*\/?(\s|\+)*script.*>|javascript\:)/i
 
 function hasXSS(details) {
   // decodeURIComponent converts percent-encoded URI back
