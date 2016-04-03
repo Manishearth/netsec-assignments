@@ -1,4 +1,6 @@
 "use strict"
+
+const DELAY = 500; //ms
 var sdim = 3;
 var dim = sdim*sdim;
 var interactive = true;
@@ -50,41 +52,76 @@ function updateState(newState) {
 	state = newState;
 	for(let button of ["permute", "nonce", "hash", "send", "verify", "start", "reveal", "type", "segment"]) {
 		document.getElementById(button).disabled = true;
+		document.getElementById(button).className = "";
 	}
+	document.getElementById("auto").disabled = false;
 
 	switch (state) {
 		case "idle":
 			document.getElementById("start").disabled=false;
+			document.getElementById("auto").disabled = true;
 			break;
 		case "started":
-			document.getElementById("permute").disabled=false;
+			prepareNextState("permute");
 			break;
 		case "permuted":
-			document.getElementById("nonce").disabled=false;
+			prepareNextState("nonce");
 			foreach("in-nonce", (g,i,j) => nonces[i][j] = g.value="");
 			foreach("in-sha", (g,i,j) => hashes[i][j] = g.value="");
 			break;
 		case "nonced":
-			document.getElementById("hash").disabled=false;
+			prepareNextState("hash");
 			foreach("in-sha", (g,i,j) => hashes[i][j] = g.value="");
 			break;
 		case "hashed":
-			document.getElementById("send").disabled=false;
+			prepareNextState("send");
 			break;
 		case "sent":
-			document.getElementById("reveal").disabled=false;
+			colorCells()
+			prepareNextState("reveal");
 			document.getElementById("type").disabled=false;
 			document.getElementById("segment").disabled=false;
 			break;
 		case "revealed":
-			document.getElementById("verify").disabled=false;
+			clearCells();
+			prepareNextState("verify");
 			break;
 		case "verified":
-			document.getElementById("permute").disabled=false;
+			prepareNextState("permute");
 			rounds++;
 			break;
 	}
 }
+
+let auto = 0;
+function prepareNextState(button) {
+	document.getElementById(button).disabled = false;
+	if(auto > 0) {
+
+		document.getElementById(button).className = "current";
+		if (state == "sent") {
+			document.getElementById("segment").value = Math.floor(9*Math.random());
+			document.getElementById("type").value = ["row","column","square"][Math.floor(3*Math.random())];
+			colorCells();
+		}
+		if(state == "verified") {
+			auto--;
+			if(auto == 0) {
+				document.getElementById(button).className = "";
+				return;
+			}
+		}
+		setTimeout(function() {
+			document.getElementById(button).click();
+		}, DELAY)
+	}
+}
+
+function runAuto() {
+	auto = parseInt(prompt("Enter number of rounds:", 10));
+	updateState(state);
+}
+
 
 function foreach(name, f) {
 	for(let i=0;i<dim;i++) {
@@ -109,6 +146,9 @@ let rounds = 0;
 let probability = 1;
 function reset() {
 	rounds = 0;
+	auto = 0;
+	probability = 1;
+	document.getElementById("probability").innerHTML = "0";
 	for(let grid of ["preset","reveal-val", "reveal-nonce", "reveal-sha", "in-val", "in-nonce", "in-sha"]) {
 		foreach(grid, (g) => g.value="");
 	}
@@ -175,10 +215,12 @@ function send() {
 }
 
 
-function getCellsForReveal(type, segment) {
+function getCellsForReveal() {
+	var type = document.getElementById('type').value;
+	var segment = parseInt(document.getElementById('segment').value);
 	let revealedPresets = new Set();
 	let ret = [];
-	if(type == '0'){
+	if(type == 'row'){
 		for(let j=0;j<dim;++j){
 			let i = segment;
 			if(preset[i][j] != "") {
@@ -187,7 +229,7 @@ function getCellsForReveal(type, segment) {
 			ret.push({"i": i, "j": j});
 		}
 	}
-	else if(type == '1'){
+	else if(type == 'column'){
 		for(let i=0;i<dim;++i){
 			let j = segment;
 			if(preset[i][j] != "") {
@@ -196,7 +238,7 @@ function getCellsForReveal(type, segment) {
 			ret.push({"i": i, "j": j});
 		}
 	}
-	else if(type == '2'){
+	else if(type == 'square'){
 		let p = parseInt(segment/sdim)*sdim;
 		let q = (segment%sdim)*sdim;
 		for(let i=p;i<p+sdim;++i){
@@ -218,10 +260,8 @@ function getCellsForReveal(type, segment) {
 	
 }
 function reveal(){
-	var type = document.getElementById('type').value;
-	var segment = parseInt(document.getElementById('segment').value);
 
-	let cells = getCellsForReveal(type,segment).all;
+	let cells = getCellsForReveal().all;
 	for (let cell of cells) {
 		access('reveal-val',cell.i, cell.j).value = permutedSolution[cell.i][cell.j];
 		access('reveal-nonce',cell.i, cell.j).value = nonces[cell.i][cell.j];
@@ -236,10 +276,9 @@ function error(str){
 }
 
 function verify(){
-	var type = document.getElementById('type').value;
-	var segment = parseInt(document.getElementById('segment').value);
 
-	let cells = getCellsForReveal(type, segment);
+
+	let cells = getCellsForReveal();
 	for(let cell of cells.all) {
 		let i = cell.i;
 		let j = cell.j;
@@ -304,4 +343,24 @@ function verify(){
 	document.getElementById("probability").innerHTML = 1 - probability;
 }
 
+function colorCells() {
+	clearCells();
+	let cells = getCellsForReveal();
 
+	for(let cell of cells.all) {
+		access('reveal-val',cell.i,cell.j).parentNode.className = "selected-preset";
+		access('in-val',cell.i,cell.j).parentNode.className = "selected-preset";
+		access('preset',cell.i,cell.j).parentNode.className = "selected-preset";
+	}
+	for(let cell of cells.mainOnly) {
+		access('reveal-val',cell.i,cell.j).parentNode.className = "selected-main";
+		access('in-val',cell.i,cell.j).parentNode.className = "selected-main";
+		access('preset',cell.i,cell.j).parentNode.className = "selected-main";
+	}
+}
+
+function clearCells() {
+	foreach('reveal-val', (g) => g.parentNode.className="");
+	foreach('in-val', (g) => g.parentNode.className="");
+	foreach('preset', (g) => g.parentNode.className="");
+}

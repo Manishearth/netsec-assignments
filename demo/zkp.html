@@ -27,12 +27,19 @@
 
 	input.mini {
             background:none!important;
-            background-color: rgba(255,255,255,0.8)!important;
+            background-color: rgba(255,255,255,0.8);
             border:none!important;
             border-color:none!important;
             text-shadow:none!important;
             box-shadow:none!important;
         }
+
+     button.current {
+     	border: 5px solid green;
+     }
+
+     td.selected-preset, td.selected-preset .mini {background-color: #a0fe84 !important;}
+     td.selected-main, td.selected-main .mini{background-color: #ffd28f !important;}
 	</style>
 
 
@@ -48,8 +55,9 @@
 
 <button id=start onclick="init()">Start!</button>
 <button onclick="prefill()">Fill with known problem/solution</button>
+<button id="auto" onclick="runAuto()" disabled>Run automatically</button><br>
 <button id="reset" onclick="reset()">Reset</button><br>
-<h3>Probability of verification: <span id=probability>0</span></h3>
+<h3>Probability of correctness: <span id=probability>0</span></h3>
 </center>
 
 <br>
@@ -68,10 +76,14 @@
 	</tr></table>
 		</div>
 		<div style="float:right; width: 20%">
-			Enter 0 for selecting a row, 1 for selecting a column and 2 for selecting a subgrid.<br>
-			<input id="type" size="2"></input><br>
+
+			<select id="type" onchange=colorCells()>
+				<option value="row">Row</option>
+				<option value="column">Column</option>
+				<option value="square">Subsquare</option>
+			</select><br>
 			Enter 0-8 for selecting the corresponding segment.<br>
-			<input id="segment" size="2"></input><br>
+			<input id="segment" size="2" value=0 onkeyup="colorCells()" onchange="colorCells()"></input><br>
 			<br>
 			<button id="reveal" onclick="reveal()">Reveal</button><br>
 			<button id="verify" onclick="verify()">Verify</button><br><br>
