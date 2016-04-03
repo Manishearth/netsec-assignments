@@ -289,7 +289,7 @@ function verify(){
 			return
 		}
 		if (nonce == "") {
-			error("Nonce at "+i+","+j+") should have been revealed");
+			error("Nonce at ("+i+","+j+") should have been revealed");
 			return
 		}
 		let fhash = hash(nonce, val);
