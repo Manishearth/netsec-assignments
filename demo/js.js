@@ -203,7 +203,7 @@ function generateHashes(){
 function permute(){
 	let a = [1,2,3,4,5,6,7,8,9];
 	a.shuffle();
-	foreach("in-val", (g, i, j) => permutedSolution[i][j] = g.value = a[g.value - 1])
+	foreach("in-val", (g, i, j) => permutedSolution[i][j] = g.value = ""+a[parseInt(g.value) - 1])
 	updateState("permuted");
 }
 
@@ -289,7 +289,7 @@ function verify(){
 			return
 		}
 		if (nonce == "") {
-			error("Nonce at "+i+","+j+") should have been revealed");
+			error("Nonce at ("+i+","+j+") should have been revealed");
 			return
 		}
 		let fhash = hash(nonce, val);

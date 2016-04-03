@@ -49,6 +49,8 @@
 </head>
 <body>
 <center>
+<h2>Interactive sudoku zero-knowledge prover/verifier</h2>
+<h4>Sudoku problem</h4>
 	<script type=text/javascript>
 		genTable("preset")
 	</script>
@@ -63,13 +65,13 @@
 <br>
 
 	<div style="width: 49%; float:left; border:1px solid black;">
+		<h3>Verifier</h3>
 		<div style="width: 79%; float:left">
-		<br>
-
+	<h4>Revealed values</h4>
 	<script type=text/javascript>genTable("reveal-val")</script>
 	<br>
 	<table border=0>
-	<tr><td><h4>Nonce</h4></td><td><h4>Hash</h4></td></tr>
+	<tr><td><h4>Nonce</h4></td><td><h4>Hash (hover to see full contents)</h4></td></tr>
 	<tr>
 	<td><script type=text/javascript>genTable("reveal-nonce")</script></td>
 	<td><script type=text/javascript>genTable("reveal-sha")</script></td>
@@ -92,12 +94,14 @@
 
 
 	<div style="width: 49%; float:right; border:1px solid black;">
+		
+		<h3>Prover</h3>
 		<div style="width: 79%; float:left">
-		<br>
+	<h4>(Permuted) solution</h4>
 	<script type=text/javascript>genTable("in-val")</script>
 	<br>
 	<table border=0>
-	<tr><td><h4>Nonce</h4></td><td><h4>Hash</h4></td></tr>
+	<tr><td><h4>Nonce</h4></td><td><h4>Hash (hover to see full contents)</h4></td></tr>
 	<tr>
 	<td><script type=text/javascript>genTable("in-nonce")</script></td>
 	<td><script type=text/javascript>genTable("in-sha")</script></td>
