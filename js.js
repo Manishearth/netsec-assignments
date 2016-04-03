@@ -1,64 +1,83 @@
-a = [];
-b = [];
-c = [];
-d = [];
-e = [];
-f = [];
-revealpos = [];
 
-preset = [];
-var hashGenerated = false;
-var revealed = false;
-var dim = 9;
 var sdim = 3;
+var dim = sdim*sdim;
+var interactive = true;
 
-function init(){
-	for(let i=0;i<dim;++i){
-		preset.push([]);
-		revealpos.push([]);
-		a.push([]);
-		b.push([]);
-		c.push([]);
-		d.push([]);
-		e.push([]);
-		f.push([]);
-		for(let j=0;j<dim;++j){
-			preset[i][j] = '';
-			revealpos[i][j] = false;
+
+var preset = newEmptyArray();
+var permutedSolution = newEmptyArray();
+var nonces = newEmptyArray();
+var hashes = newEmptyArray();
+
+function newEmptyArray() {
+	ret = new Array(9);
+	for(i=0;i<ret.length;i++) {
+		ret[i] = new Array(9);
+	}
+	return ret;
+}
+function genTable(name) {
+	document.write("<table class=sudoku>");
+			for (let i =0; i<9; i++) {
+			document.write("<tr>");
+			for (let j=0; j<9;j++) {
+				document.write("<td><input size='1%' id='"+name+"-"+i+""+j+"'/></td>")
+			}
+			document.write("</tr>");
+		}
+	document.write("</table>")
+}
+
+function foreach(name, f) {
+	for(let i=0;i<dim;i++) {
+		for(let j=0; j<dim; j++) {
+			f(document.getElementById(name+'-'+i+""+j),i,j);
 		}
 	}
+}
+function reset() {
+	for(grid of ["preset","reveal-val", "reveal-nonce", "reveal-sha", "in-val", "in-nonce", "in-sha"]) {
+		foreach(grid, (g) => g.value="");
+	}
+	preset = newEmptyArray();
+	permutedSolution = newEmptyArray();
+	nonces = newEmptyArray();
+	hashes = newEmptyArray();
+}
 
-	preset[0][0] = '1';
-
-	for(let i=0;i<dim;++i){
-		for(let j=0;j<dim;++j){
-			document.getElementById('d'+i+j).value = preset[i][j];
+function prefill() {
+	reset();
+	let table = exampleTables[Math.floor(Math.random()*exampleTables.length)];
+	foreach("in-val", (g, i, j) => permutedSolution[i][j] = g.value = table.item[i][j].value)
+	foreach("preset", (g, i, j) => {
+		if(table.item[i][j].isPreset) {
+			g.value = table.item[i][j].value
+		} else {
+			g.value = "";
 		}
-	}	
+		preset[i][j] = g.value;
+	});
+}
+
+
+function init(){
+
 }
 
 function hash(x, y){
-	return x + '-' + y;
+	var shaObj = new jsSHA("SHA-256", "TEXT");
+	shaObj.update(x + '-' + y)
+	return shaObj.getHash("HEX");
 }
 
 function generateRandomNonces(){
-	for(let i=0;i<dim;++i){
-		for(let j=0;j<dim;++j){
-			let x = Math.random().toString(32).substring(7);
-			document.getElementById('e' + i + j).value = x;
-			e[i][j] = x;
-		}
-	}
+	foreach("in-nonce",(g, i, j)=> nonces[i][j] = g.value = Math.random().toString(32).substring(7));
 }
 
 function generateHashes(){
-	for(let i=0;i<dim;++i){
-		for(let j=0;j<dim;++j){
-			f[i][j] = hash(d[i][j], e[i][j]);
-			document.getElementById('f' + i + j).value = f[i][j];
-		}
-	}
-	hashGenerated = true;
+	foreach("in-sha", (g,i,j) => {
+		hashes[i][j] = g.value = hash(nonces[i][j], permutedSolution[i][j])
+	})
 }
 
 function permute(){
@@ -230,36 +249,3 @@ function verify(){
 
 	alert("All Cool :)");
 }
-
-document.getElementById("b0").addEventListener("click", function(){
-	permute();
-});
-
-document.getElementById("b1").addEventListener("click", function(){
-	generateRandomNonces();
-});
-
-document.getElementById("b2").addEventListener("click", function(){
-	generateHashes();
-});
-
-document.getElementById("b3").addEventListener("click", function(){
-	if(hashGenerated)
-		showHashes();
-	else
-		alert("Generate hashes first");
-});
-
-document.getElementById("b4").addEventListener("click", function(){
-	clear();
-});
-
-document.getElementById("b5").addEventListener("click", function(){
-	reveal();
-});
-
-document.getElementById("b6").addEventListener("click", function(){
-	verify();
-});
-
-init();
