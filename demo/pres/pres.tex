@@ -1,0 +1,212 @@
+\documentclass{beamer}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+%\usepackage{physymb}
+\usepackage{graphicx}
+\usepackage{graphicx, standalone}
+\iffalse
+\setbeamertemplate{frametitle}
+  {\begin{centering}\smallskip
+   \insertframetitle\par
+   \smallskip\end{centering}}
+\setbeamertemplate{itemize item}{$\bullet$}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}[text line]{%
+    \hfill\strut{%
+        \scriptsize\sf\color{black!60}%
+        \quad\insertframenumber
+    }%
+    \hfill
+}
+\fi
+\newif\ifanim
+\animtrue
+\definecolor{DarkFern}{HTML}{407428}
+\definecolor{DarkCharcoal}{HTML}{4D4944}
+\colorlet{Fern}{DarkFern!85!white}
+\colorlet{Charcoal}{DarkCharcoal!85!white}
+\colorlet{LightCharcoal}{Charcoal!50!white}
+\colorlet{AlertColor}{orange!80!black}
+\colorlet{DarkRed}{red!70!black}
+\colorlet{DarkBlue}{blue!70!black}
+\colorlet{DarkGreen}{green!70!black}
+
+% Use the colors:
+\setbeamercolor{title}{fg=Fern}
+\setbeamercolor{titlelike}{fg=Fern}
+\setbeamercolor{frametitle}{fg=Fern}
+\setbeamercolor{normal text}{fg=Charcoal}
+\setbeamercolor{block title}{fg=black,bg=Fern!25!white}
+\setbeamercolor{block body}{fg=black,bg=Fern!25!white}
+\setbeamercolor{alerted text}{fg=AlertColor}
+\setbeamercolor{itemize item}{fg=Charcoal}
+
+
+\setbeamertemplate{part page}{
+        \begin{beamercolorbox}[sep=8pt,center,wd=\textwidth]{part title}
+            \usebeamerfont{part title}\insertpart\par
+        \end{beamercolorbox}
+}
+
+\begin{document}
+\title{Zero Knowledge Proofs}   
+\author{\begin{tabular}{r@{ }l} 
+Authors:      & Manish Goregaokar, Pradyot Prakash,\\ & Ashish Anand, Soham Ganatra\\[1ex] 
+\end{tabular}
+} 
+\date{April 5, 2016} 
+
+\frame{\titlepage} 
+
+\frame{
+\frametitle{What is it?}
+
+A zero-knowledge proof is an algorithm allowing a party to prove to another party that they have a solution to a given problem, without divulging any details about the problem. It requires no trust between the two parties.
+}
+
+\frame{
+\frametitle{Example scenario}
+
+\begin{itemize}
+    \item Alice has a hard problem she wishes to solve, say, a graph 3-coloring or a sudoku problem
+    \item Bob has a solution. He wishes to prove to Alice that he has this solution.
+    \item However, he does not want Alice to know the solution immediately
+    \item He can use a zero-knowledge proof!
+\end{itemize}
+}
+
+
+\part{Coloring a graph}
+\frame{\partpage}
+
+\frame{
+\frametitle{Coloring a graph}
+
+
+\begin{overprint}
+  \onslide<1> Three-coloring a graph (so that no two adjacent nodes have the same color) is a hard problem.
+  \onslide<2> Alice has such a graph
+  \onslide<3> Bob has a solution.
+  \onslide<4> Alice draws the graph on a piece of paper and gives it to Bob, who goes into another room.
+  \onslide<5> He colors it in, and then covers each node. He comes out of the room.
+  \onslide<6> Alice now requests two adjacent nodes be uncovered. 
+  \onslide<7> This is done in sight of Alice, so there can be no tampering of the colors.
+  \onslide<8> Alice can easily verify that the two adjacent nodes have a different color.
+  \onslide<9> There's still a chance Bob's solution is wrong, from Alice's point of view
+  \onslide<10> For the given wrong solution, Alice would have to choose the following nodes to detect the deception
+  \onslide<11> So, we try again
+  \onslide<12> Bob first permutes his coloring,\\~
+  \onslide<13> Bob first permutes his coloring,\\~ and Alice requests two adjacent nodes to be uncovered
+  \onslide<14> Each round, Alice has a chance of revealing a deception. 
+  \onslide<15> As the number of rounds increases, Alice can become sure that there isn't any and that Bob has a correct solution
+  \onslide<16> At the same time, each round, Alice only sees the information ``these two nodes have different colors, as they should". No additional information about the coloring is leaked.
+\end{overprint}
+
+\begin{overprint}
+  \onslide<2>\centerline{\includegraphics[scale=0.5]{{graph-uncolored.dot}.png}}
+  \onslide<3>\centerline{\includegraphics[scale=0.5]{{graph-colored.dot}.png}}
+  \onslide<4-5>\centerline{\includegraphics[scale=0.5]{{graph-uncolored.dot}.png}}
+  \onslide<6-8>\centerline{\includegraphics[scale=0.5]{{graph-12.dot}.png}}
+  \onslide<9>\centerline{\includegraphics[scale=0.5]{{graph-wrong.dot}.png}}
+  \onslide<10>\centerline{\includegraphics[scale=0.5]{{graph-wrong-cov.dot}.png}}
+  \onslide<11>\centerline{\includegraphics[scale=0.5]{{graph-uncolored.dot}.png}}
+  \onslide<12>\centerline{\includegraphics[scale=0.5]{{graph-colored-2.dot}.png}}
+  \onslide<13>\centerline{\includegraphics[scale=0.5]{{graph-colored-2-34.dot}.png}}
+\end{overprint}
+}
+
+
+\frame{
+\frametitle{Issues}
+\begin{itemize}
+    \item This requires physical presence
+    \item This requires physical trust (i.e. that Alice will not simply snatch the covered graph and uncover it herself)
+    \item This is not scalable
+\end{itemize}
+
+}
+
+\frame{
+\frametitle{Doing this the cryptographic way}
+We use hashes and nonces to make \emph{commitments}. For each node, Bob chooses a random \emph{nonce},
+and hashes the concatenation of the nonce with the color. He shares these hashes with Alice. When he has to reveal the
+colors for two nodes, he simply reveals the nonces and colors for those nodes. Alice can verify that they match the hash.
+It is hard for Bob to fake values that produce a hash, so this has the same effect as covering the colors on a piece of paper
+-- it can't be tampered with.
+
+}
+
+\part{Solving sudoku}
+\frame{\partpage}
+
+
+\frame{
+\frametitle{Solving sudoku}
+The algorithm is similar. Bob permutes the solution, and makes commitments to each individual cell.
+Alice asks him to reveal a single row, column, or 3x3 sub-square. If the row/column/subsquare contains pre-set values
+(from the problem statement), Bob must additionally reveal all other spots on the grid where these values are pre-set.
+\pause
+\centerline{\includegraphics[scale=0.5]{{sudoku-zkp}.png}}
+}
+
+\frame{
+\frametitle{Solving sudoku}
+Alice then verifies if the row/column/subsquare has all 9 numbers in it, and if the pre-set values match up.
+}
+
+
+\part{Demo}
+\frame{\partpage}
+
+
+\frame{\frametitle{Zero Knowledge Contingent Payment}
+    There is a general algorithm that lets one do a zero-knowledge proof for almost any problem.
+    We've analysed this in depth in \href{http://manishearth.github.io/blog/2016/03/05/exploring-zero-knowledge-proofs/}{http://manishearth.github.io/blog/2016/03/05/exploring-zero-knowledge-proofs/}
+}
+
+\frame{\frametitle{Zero Knowledge Contingent Payment}
+    Using this algorithm, one can actually use zero knowledge proofs with bitcoin for securely swapping information for money. Bob can \emph{sell} his solution to Alice without any trust required
+    -- Alice will not lose money if the solution is wrong, and Alice cannot see the solution unless Bob gets the money.
+}
+\frame{\frametitle{Zero Knowledge Contingent Payment}
+    To do this, Bob first hashes his solution $S$ to get hash $H$ and shares this hash. A program is written which can verify the following
+    \emph{compound} statement:
+    \begin{itemize}
+        \item $S$ is a solution to Alice's problem
+        \item $H$ is the hash of $S$
+    \end{itemize}
+
+    Using the general zero-knowledge proof algorithm, a zero-knowledge proof is executed with this program, and Alice is convinced that Bob has such a solution.
+}
+
+\frame{\frametitle{Zero Knowledge Contingent Payment}
+    Now, Bob simply needs to securely swap the pre-image of $H$ (that is, $S$) with Alice. The Bitcoin protocol can do this for us.
+}
+
+\frame{\frametitle{Zero Knowledge Contingent Payment}
+    Each Bitcoin transaction has a \emph{script}, which determines who can use a transaction.\pause
+    Usually the script is ``whoever can sign this transaction with the private key corresponding to the receiver's address".
+
+}
+
+\frame{\frametitle{Zero Knowledge Contingent Payment}
+    Instead, we make the script two-fold, as ``whoever can sign this transaction with the private key corresponding to the receiver's address, *and* has the pre-image of $H$''.\\~
+    The moment Bob attempts to take the money by providing the pre-image of $H$, this pre-image will be visible to the Bitcoin network and thus Alice. Since hashes are hard to 
+    fake, this will be the solution.
+}
+
+\frame{\frametitle{Further reading}
+    \begin{itemize}
+        \item \href{http://manishearth.github.io/blog/2016/03/05/exploring-zero-knowledge-proofs/}{http://manishearth.github.io/blog/2016/03/05/exploring-zero-knowledge-proofs/}
+        \item \href{https://bitcoincore.org/en/2016/02/26/zero-knowledge-contingent-payments-announcement/}{https://bitcoincore.org/en/2016/02/26/zero-knowledge-contingent-payments-announcement/}
+        \item \href{https://people.xiph.org/\~greg/simple\_verifyable\_execution.txt}{https://people.xiph.org/\~{}greg/simple\_verifyable\_execution.txt}
+        \item \href{https://github.com/scipr-lab/libsnark}{https://github.com/scipr-lab/libsnark}
+    \end{itemize}
+}
+\part{Thank you!}
+\frame{\partpage}
+
+
+\end{document}
+
