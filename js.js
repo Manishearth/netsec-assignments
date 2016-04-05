@@ -1,6 +1,6 @@
 "use strict"
 
-const DELAY = 500; //ms
+var DELAY = 500; //ms
 var sdim = 3;
 var dim = sdim*sdim;
 var interactive = true;
@@ -83,10 +83,10 @@ function updateState(newState) {
 			document.getElementById("segment").disabled=false;
 			break;
 		case "revealed":
-			clearCells();
 			prepareNextState("verify");
 			break;
 		case "verified":
+			clearCells();
 			prepareNextState("permute");
 			rounds++;
 			break;
@@ -108,6 +108,7 @@ function prepareNextState(button) {
 			auto--;
 			if(auto == 0) {
 				document.getElementById(button).className = "";
+				document.getElementById('auto').disabled = false;
 				return;
 			}
 		}
@@ -118,7 +119,11 @@ function prepareNextState(button) {
 }
 
 function runAuto() {
+	if(auto > 0) {
+		return;
+	}
 	auto = parseInt(prompt("Enter number of rounds:", 10));
+	document.getElementById('auto').disabled = true;
 	updateState(state);
 }
 
